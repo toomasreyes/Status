@@ -14,8 +14,8 @@ app.get('/estado/:token', async (req, res) => {
     const response = await axios.get(url);
     const $ = cheerio.load(response.data);
 
-    // Eliminar sección de "Special Requirements"
-    $("*:contains('Special Requirements')").remove();
+    // Eliminar sección de "Special Request"
+    $("*:contains('Special Request')").remove();
 
     res.send($.html());
   } catch (err) {
