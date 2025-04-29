@@ -9,14 +9,15 @@ app.get('/estado/:token', async (req, res) => {
 
   try {
     const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome',
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-    const page = await browser.newPage();
 
+    const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    // Eliminar "Special Request"
+    // Elimina cualquier sección que diga “Special Request”
     await page.evaluate(() => {
       const elements = Array.from(document.querySelectorAll('*'));
       elements.forEach(el => {
@@ -26,15 +27,15 @@ app.get('/estado/:token', async (req, res) => {
       });
     });
 
-    const content = await page.content();
+    const html = await page.content();
     await browser.close();
-    res.send(content);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error cargando el estado');
+    res.send(html);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).send('Error al cargar el estado del viaje');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor proxy escuchando en http://localhost:${PORT}`);
 });
