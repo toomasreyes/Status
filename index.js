@@ -3,6 +3,9 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const app = express();
 
+// Usar el puerto de Render o 3000 si es local
+const port = process.env.PORT || 3000;
+
 app.get('/estado/:token', async (req, res) => {
   const { token } = req.params;
   const url = `https://ride4me.io?t=${token}`;
@@ -20,6 +23,6 @@ app.get('/estado/:token', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Servidor proxy escuchando en http://localhost:3000');
+app.listen(port, () => {
+  console.log(`Servidor proxy escuchando en http://localhost:${port}`);
 });
