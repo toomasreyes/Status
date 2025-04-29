@@ -1,28 +1,40 @@
 const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 const app = express();
-
-// Usar el puerto de Render o 3000 si es local
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.get('/estado/:token', async (req, res) => {
-  const { token } = req.params;
+  const token = req.params.token;
   const url = `https://ride4me.io?t=${token}`;
 
   try {
-    const response = await axios.get(url);
-    const $ = cheerio.load(response.data);
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
 
-    // Eliminar sección de "Special Request"
-    $("*:contains('Special Request')").remove();
+    await page.goto(url, { waitUntil: 'networkidle2' });
 
-    res.send($.html());
-  } catch (err) {
-    res.status(500).send('Error al cargar el estado');
+    // Eliminar "Special Request"
+    await page.evaluate(() => {
+      const elements = Array.from(document.querySelectorAll('*'));
+      elements.forEach(el => {
+        if (el.innerText?.includes('Special Request')) {
+          el.remove();
+        }
+      });
+    });
+
+    const content = await page.content();
+    await browser.close();
+    res.send(content);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error cargando el estado');
   }
 });
 
-app.listen(port, () => {
-  console.log(`Servidor proxy escuchando en http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
